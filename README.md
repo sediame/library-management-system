@@ -1,1 +1,3 @@
-# library-management-system
+# Library Management System
+
+Prototype developed by Dounia
