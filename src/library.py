@@ -1,61 +1,124 @@
-from src.cabin import Cabin
-from typing import Set
+
 from src.article import Article
 from src.user import User
+import sqlite3
+from datetime import date
 
 
 class Library:
-    def __init__(self, name: str):
-        self.store: Set[Article] = set()
-        self.subscribers = set()
-        self.track_book = dict()
+    def __init__(self, name: str, ):
+        # Database Initialization
+        self.__connection = sqlite3.connect("library.db")
+        self.__cursor = self.__connection.cursor()
+        # Create Tables
+        #self.__cursor.execute("drop table articles")
+        self.__cursor.execute("CREATE TABLE IF NOT EXISTS articles(isbn INTEGER PRIMARY KEY, \
+                                title TEXT NOT NULL, \
+                                author TEXT NOT NULL,\
+                                subject TEXT NOT NULL,\
+                                publication_date date,\
+                                edition TEXT NOT NULL,\
+                                number_version INT NOT NULL,\
+                                user_id TEXT  NULL,\
+                                date_borrow date,\
+                                accessible TEXT NOT NULL)")
+
+        self.__cursor.execute("CREATE TABLE IF NOT EXISTS user(id_user TEXT PRIMARY KEY, \
+                                        name TEXT NOT NULL, \
+                                        last_name TEXT NOT NULL,\
+                                        gender TEXT NOT NULL,\
+                                        birthday date,\
+                                        date_registration date)")
+
+        self.__cursor.execute("CREATE TABLE IF NOT EXISTS cabin(idCab INTEGER PRIMARY KEY, \
+                                                type TEXT NOT NULL, \
+                                                first_number_book INTEGER NOT NULL,\
+                                                last_number_book INTEGER NOT NULL)")
+
+        self.__connection.commit()
         self.name = name
-        # self.cabin = Cabin()
 
     def add_article(self, a: Article):
-        self.store.add(a)
-        print(type(a))
+        self.__cursor.execute("""INSERT INTO Articles(isbn, title, author, subject, publication_date, edition, number_version, accessible)
+                VALUES (?,?,?,?,?,?,?,?)
+                """, (
+        a.isbn, a.title, a.author, a.subject, a.publication_date, a.edition, a.number_version, a.accessible))
+        self.__connection.commit()
+        print('Data entered successfully.')
 
-    def addition(self, key, value):
-        self.track_book[key] = value
+    def id_calcul(self):
+        rows = self.__cursor.execute("SELECT isbn FROM articles ORDER BY isbn DESC LIMIT 1")
+        final = rows.fetchall()
+        if len(final)==0:
+            key = 0
+            return key
+        else:
+            key = final[0][0]
+            return key
 
-    def remove_article(self, isbn: str) -> bool:
-        if len(self.store) == 0:
-            print("your store is empty")
-            return True
-        for a in self.store:
-            if a.isbn == isbn:
-                self.store.remove(a)
-                print("your book has been deleted")
-                return True
-        print("You book has not been found")
-        return False
+
+    def remove_article(self, val: int) -> bool:
+        self.__cursor.execute(f"DELETE  FROM articles where isbn={val}")
+        print("your book has been deleted")
+        self.__connection.commit()
 
     def list_article(self) -> None:
-        print(self.store)
+        result = self.__cursor.execute("SELECT * FROM articles")
+        print(result.fetchall())
+    def list_borrow(self) -> None:
+        result = self.__cursor.execute("SELECT * FROM borrow")
+        print(result.fetchall())
 
-    def search(self, isbn: str) -> bool:
-        for art in self.store:
-            if isbn == art.isbn:
-                print("your book has been founded")
-                return True
-        print("your book has not been founded")
+    def search(self, isbn: int) -> bool:
+        result = self.__cursor.execute("SELECT * FROM articles where isbn=?", (isbn))
+        final = result.fetchall()
+        if len(final)==0:
+            print("your book has not  been found")
+        else:
+            location = self.location_book(isbn)
+            print(f"Hello, your book has been found in cabin numer  {location} ")
+
+    def borrow(self, isbn: int, user_idd) -> bool:
+        result = self.__cursor.execute("SELECT isbn, accessible FROM articles where isbn=?", (isbn,))
+        final = result.fetchall()
+        if len(final)!=0  and (final[0][1] == "1"):
+            print("your book has been found and you can borrow it")
+            date_borrow1 = date.today()
+            self.__cursor.execute("Update articles set user_id= ?, date_borrow = ?, accessible= False  WHERE isbn=?", (user_idd, date_borrow1, isbn))
+            self.__connection.commit()
+            print("data has been insert")
+
+            return True
+
+        print("sorry book is not availible")
         return False
 
-    def borrow(self, isbn: str, user_id: str) -> bool:
-        for art in self.store:
-            if (isbn == art.isbn) and art.accessible:
-                print("your book has been found and you can borrow it")
-                self.addition(isbn, user_id)
-                print(self.track_book)
-                art.accessible = False
-                return True
-        print("sorry, book is not available")
-        return False
+
 
     def add_user(self, a: User):
-        self.subscribers.add(a)
-        print(type(a))
+        self.__cursor.execute("""INSERT INTO user(id_user, name, last_name, gender, birthday, date_registration)
+                        VALUES (?,?,?,?,?,?)
+                        """, (a.id_user, a.name, a.last_name, a.gender, a.birthday, a.date_registration))
+        self.__connection.commit()
+        print('Data entered successfully.')
 
     def list_user(self) -> None:
-        print(self.subscribers)
+        result = self.__cursor.execute("SELECT * FROM user")
+        print(result.fetchall())
+    def insert(self):
+        self.__cursor.execute("""INSERT INTO cabin(idCab, type, first_number_book,last_number_book)
+                        VALUES (1,"language",1,10),
+                               (2,"history",11,20),
+                               (3,"math",21,30),
+                               (4,"physique",31,40),
+                               (5,"informatique",41,50)""")
+        self.__connection.commit()
+        print("your cabin is built")
+    def list_cabin(self) -> None:
+        result = self.__cursor.execute("SELECT * FROM cabin")
+        print(result.fetchall())
+    def location_book(self, isbn):
+        result = self.__cursor.execute("SELECT idCab FROM cabin where first_number_book<=? and last_number_book>=?", (isbn, isbn ))
+        locat = result.fetchall()
+        location = locat[0][0]
+        return location
