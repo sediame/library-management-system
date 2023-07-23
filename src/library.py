@@ -11,7 +11,7 @@ class Library:
         self.__connection = sqlite3.connect("library.db")
         self.__cursor = self.__connection.cursor()
         # Create Tables
-        #self.__cursor.execute("drop table articles")
+
         self.__cursor.execute("CREATE TABLE IF NOT EXISTS articles(isbn INTEGER PRIMARY KEY, \
                                 title TEXT NOT NULL, \
                                 author TEXT NOT NULL,\
@@ -65,18 +65,21 @@ class Library:
     def list_article(self) -> None:
         result = self.__cursor.execute("SELECT * FROM articles")
         print(result.fetchall())
-    def list_borrow(self) -> None:
-        result = self.__cursor.execute("SELECT * FROM borrow")
-        print(result.fetchall())
 
     def search(self, isbn: int) -> bool:
         result = self.__cursor.execute("SELECT * FROM articles where isbn=?", (isbn))
         final = result.fetchall()
-        if len(final)==0:
-            print("your book has not  been found")
+        print(final[0][7])
+        if len(final)!=0:
+            if final[0][7]==None:
+                location = self.location_book(isbn)
+                print(f"Hello, your book has been found in cabin numer  {location} ")
+            else:
+                print(f"Hello, this book has been borrowed by user  {final[0][7]} ")
         else:
-            location = self.location_book(isbn)
-            print(f"Hello, your book has been found in cabin numer  {location} ")
+            print("your book has not  been found in library")
+
+
 
     def borrow(self, isbn: int, user_idd) -> bool:
         result = self.__cursor.execute("SELECT isbn, accessible FROM articles where isbn=?", (isbn,))
@@ -122,3 +125,8 @@ class Library:
         locat = result.fetchall()
         location = locat[0][0]
         return location
+
+    def bring_back_book(self, isbn):
+        self.__cursor.execute("Update articles set user_id= NULL, date_borrow = NULL, accessible= TRUE  WHERE isbn=?", (isbn))
+        self.__connection.commit()
+        print("thanks for bringing back this book")

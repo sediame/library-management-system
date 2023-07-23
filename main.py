@@ -21,7 +21,7 @@ def main():
         print("Press 5 if you want to borrow a book")
         print("Press 6 if you want to add a user")
         print("Press 7 to list of users in library")
-        print("Press 8 to list of borrow in library")
+        print("Press 8 when user bring borrowed book")
 
         choice = input('Enter your choice: ')
 
@@ -66,8 +66,8 @@ def main():
             print("list of users:")
             lib.list_user()
         elif choice == "8":
-            print("list of borrow:")
-            lib.list_borrow()
+            isbn: str = input('Enter your isbn: ')
+            lib.bring_back_book(isbn)
 
         else:
             print("I do not know how to perform this yet, Please choose option again")
