@@ -1,3 +1,4 @@
 # Library Management System
 
-Prototype developed by Dounia
+- A Library Management System used to experiment with python programming constructs.
+- Prototype developed by Dounia
