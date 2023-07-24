@@ -24,11 +24,11 @@ class Library:
                                 accessible TEXT NOT NULL)")
 
         self.__cursor.execute("CREATE TABLE IF NOT EXISTS user(id_user TEXT PRIMARY KEY, \
-                                        name TEXT NOT NULL, \
-                                        last_name TEXT NOT NULL,\
-                                        gender TEXT NOT NULL,\
-                                        birthday date,\
-                                        date_registration date)")
+                                        name TEXT  NULL, \
+                                        last_name TEXT  NULL,\
+                                        gender TEXT  NULL,\
+                                        birthday date NULL,\
+                                        date_registration date NULL)")
 
         self.__cursor.execute("CREATE TABLE IF NOT EXISTS cabin(idCab INTEGER PRIMARY KEY, \
                                                 type TEXT NOT NULL, \
