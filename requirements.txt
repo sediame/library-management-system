@@ -1,1 +1,2 @@
 shortuuid~=1.0.11
+fastapi~=0.100.0
