@@ -1,9 +1,9 @@
 class Article:
-    def __init__(self, isbn: str, title=None, author=None, subject=None, publication_date=None, edition=None, number_version=1, accessible=True):
+    def __init__(self, isbn: str, title=None, author=None, type=None, publication_date=None, edition=None, number_version=1, accessible=True):
         self.isbn = isbn
         self.title = title
         self.author = author
-        self.subject = subject
+        self.type = type
         self.publication_date = publication_date
         self.edition = edition
         self.number_version = number_version

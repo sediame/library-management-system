@@ -1,77 +1,59 @@
-
 from src.library import Library
 from src.article import Article
+from src.cabin import Cabin
+from fastapi import FastAPI
 from src.user import User
-import shortuuid
-from datetime import date
+
+app = FastAPI()
+lib = Library("Central Library Leipzig")
 
 
-def main():
+@app.get("/newuser/")
+async def add_user(name, last_name, gender=None, birthday=None):
 
-    lib = Library("Central Library Leipzig")
+    user = User(name=name, last_name=last_name, gender=gender, birthday=birthday)
+    lib.add_user(user)
+    lib.list_user()
 
-    while True:
-        print("Please choose your option from the list")
+    return {"status": f"User with name {name} has been added successfully"}
 
-        print("Press 0 to exit")
-        print("Press 1 to add book")
-        print("Press 2 to list of books in library")
-        print("Press 3 to search books in library")
-        print("Press 4 if you want to remove a book")
-        print("Press 5 if you want to borrow a book")
-        print("Press 6 if you want to add a user")
-        print("Press 7 to list of users in library")
-        print("Press 8 when user bring borrowed book")
+@app.get("/newubook/")
+async def add_article(isbn, title, author, type, publication_date = None, edition = None, number_version=1):
 
-        choice = input('Enter your choice: ')
+    articles = Article(isbn=isbn, title=title, author=author, type=type, publication_date=publication_date, edition=edition, number_version=number_version )
+    lib.add_article(articles)
+    lib.list_article()
 
-        if choice == "0":
-            print("See you later")
-            break
-        elif choice == "1":
-            isbn = lib.id_calcul()+1
-            print(isbn)
-            title = input('Enter book title: ')
-            author = input('Enter book author: ')
-            subject = input('Enter book subject: ')
-            publication_date = input('Enter book publication_date: ')
-            edition = input('Enter book edition: ')
-            number_version = input('Enter book number_version: ')
-            book = Article(isbn, title, author, subject, publication_date, edition, number_version, True)
-            lib.add_article(book)
+    return {"status": f"book  with title {title} has been added successfully"}
+@app.get("/buildcabin/")
+async def build_cabin(cabin_id, type):
 
-        elif choice == "2":
-            print("list of books:")
-            lib.list_article()
-        elif choice == "3":
-            user_input = input('Enter your isbn for book that you want: ')
-            lib.search(user_input)
-        elif choice == "4":
-            val: int = input('Enter your isbn: ')
-            lib.remove_article(val)
-        elif choice == "5":
-            isbn: str = input('Enter your isbn: ')
-            user_id: str = input('Enter your user: ')
-            lib.borrow(isbn, user_id)
-        elif choice == "6":
-            id_user = shortuuid.uuid()[:8]
-            name = input('Enter your user name: ')
-            last_name = input('Enter your user last name: ')
-            gender = input('Enter your user gender (M or F): ')
-            birthday = input('Enter your user birthday: ')
-            date_registration = date.today()
-            user = User(id_user, name, last_name, gender, birthday, date_registration)
-            lib.add_user(user)
-        elif choice == "7":
-            print("list of users:")
-            lib.list_user()
-        elif choice == "8":
-            isbn: str = input('Enter your isbn: ')
-            lib.bring_back_book(isbn)
+    cabin = Cabin(cabin_id= cabin_id, type= type)
+    lib.build_cabin(cabin)
+    lib.list_cabin()
 
-        else:
-            print("I do not know how to perform this yet, Please choose option again")
+    return {"status": f"cabin  with id {cabin_id} has been added successfully"}
 
+@app.get("/findbook/")
+async def search(isbn):
+    lib.search(isbn)
 
-if __name__ == "__main__":
-    main()
+    return {"status": f"book  with id {isbn} has been been found"}
+
+@app.get("/borrowbook/")
+async def borrow(isbn, user_id):
+    lib.borrow(isbn, user_id)
+
+    return {"status": f"cabin  with id {isbn} has been added successfully"}
+
+@app.get("/returnbook/")
+async def bring_back_book(isbn):
+    lib.bring_back_book(isbn)
+
+    return {"status": f"book  with id {isbn} has been returned successfully"}
+
+@app.get("/removebook/")
+async def remove_article(isbn):
+    lib.remove_article(isbn)
+
+    return {"status": f"book  with id {isbn} has been removed successfully"}
